@@ -3,6 +3,9 @@ ifneq (,$(wildcard ./.env.dev))
     export
 endif
 
+start-llm-container:
+	invoke llm.start-llm-container
+
 build-image:
 	docker build . -t ${IMAGE_NAME}
 
