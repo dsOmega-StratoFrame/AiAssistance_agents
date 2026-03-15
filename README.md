@@ -1,7 +1,29 @@
-<!-- toc -->
+<!-- mtoc-start -->
 
-# $ProjectName
+* [AI Assistance agents](#ai-assistance-agents)
+  * [KBN](#kbn)
+  * [[Methodology chosen][2]](#methodology-chosen2)
+  * [Contributing](#contributing)
+  * [References](#references)
+
+<!-- mtoc-end -->
+
+# AI Assistance agents
+
+Personal agentic systems for day-to-day AI Assistance.
+
+## KBN
+
+Requires `invoke` & `start-llm-container` external task available in
+`shared-scripts`.
+
+```bash
+make start-llm-container
+pixi run kbn
+```
+
 ## [Methodology chosen][2]
+
 [Data Science Lifecycle Process][1].
 See [Branch Types][3] for branching naming model.
 
@@ -13,11 +35,13 @@ experiment and model branches made while working on RAN-73 will be:
 `model/RAN-73_custom-churn-classification`
 
 ## Contributing
+
 See guidelines in [Contributing](./CONTRIBUTING.md). This projects also
 has Docker support, see ["Running in Docker"
 section in Contributing](./CONTRIBUTING.md#running-in-docker).
 
 ## References
+
 [1]: <https://github.com/dslp/dslp> 'Data Science Lifecycle Process'
 [2]: <https://youtu.be/nx1VQrGfU8A?t=556> 'Data Science Lifecycle Process
 Lecture'

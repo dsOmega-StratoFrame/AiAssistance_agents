@@ -12,6 +12,7 @@ platforms = ["linux-64"]
 # are recognized as global).
 postinstall = "pip install --no-build-isolation --no-deps --disable-pip-version-check --break-system-packages -e ."
 build = "echo test"
+kbn = "python src/kbn/main.py"
 
 [dependencies]
 python = ">=3.14"
@@ -19,12 +20,12 @@ pandas = "*"
 langchain = "*"
 langchain-ollama = "*"
 # numpy = "==1.26.4"
-# tqdm = "*"
 
 [pypi-dependencies]
 # Currently this version (that is compatible with Python 3.14) is only
 # available at Pypi.
 langchain-chroma = "==1.1.0"
+tqdm = "*"
 
 [feature.test]
 tasks = { test = "pytest" }

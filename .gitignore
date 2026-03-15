@@ -5,7 +5,8 @@ __pycache__/
 
 # Datasets
 src/*/data
-data/processed/chrome_langchain_db
+# - Sensitive
+data/*/kbn-
 
 # C extensions
 *.so

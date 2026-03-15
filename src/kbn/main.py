@@ -2,20 +2,33 @@ from langchain_ollama.llms import OllamaLLM
 from langchain_core.prompts import ChatPromptTemplate
 from kbn.vector import retriever
 
-model = OllamaLLM(
-    model="qwen3.5:9b",
-    base_url="http://localhost:11434"
-)
+model = OllamaLLM(model="qwen3.5:9b")
 
-template = """
-You are an exeprt in answering questions about a pizza restaurant
+PIZZA_TEMPLATE = """
+You are an expert in answering questions about a pizza restaurant
 
-Here are some relevant reviews: {reviews}
+Here are some relevant reviews: {context}
 
 Here is the question to answer: {question}
 """
+
+TASKWARRIOR_TEMPLATE = """
+You are an expert in time management and know very well how to prioritize tasks
+to achieve best results longterm in IT and related fields.
+
+When you reference a task, use it's id in full form.
+
+Here are some relevant tasks: {context}
+
+Here is the question to answer: {question}
+"""
+
+template = TASKWARRIOR_TEMPLATE
 prompt = ChatPromptTemplate.from_template(template)
 chain = prompt | model
+
+print("Following template:")
+print(template)
 
 while True:
     print("\n\n-------------------------------")
@@ -23,7 +36,10 @@ while True:
     print("\n\n")
     if question == "q":
         break
-    
-    reviews = retriever.invoke(question)
-    result = chain.invoke({"reviews": reviews, "question": question})
+
+    context = retriever.invoke(question)
+    result = chain.invoke({
+        "context": context,
+        "question": question,
+    })
     print(result)

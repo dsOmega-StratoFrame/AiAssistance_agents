@@ -3,6 +3,12 @@ ifneq (,$(wildcard ./.env.dev))
     export
 endif
 
+export-taskwarrior-manual:
+	task logsequuid.none: and status.not:deleted and status.not:completed export > data/raw/kbn-/taskwarrior.json
+
+export-taskwarrior:
+	task status.not:deleted and status.not:completed export > data/raw/kbn-/taskwarrior.json
+
 start-llm-container:
 	invoke llm.start-llm-container
 
