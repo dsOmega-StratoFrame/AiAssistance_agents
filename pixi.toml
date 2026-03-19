@@ -19,6 +19,7 @@ python = ">=3.14"
 pandas = "*"
 langchain = "*"
 langchain-ollama = "*"
+pyzotero = ">=1.10.0,<2"
 # numpy = "==1.26.4"
 
 [pypi-dependencies]
