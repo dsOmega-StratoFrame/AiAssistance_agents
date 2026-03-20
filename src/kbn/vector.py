@@ -12,7 +12,7 @@ embeddings = OllamaEmbeddings(
     model="qwen3-embedding:4b"
 )
 
-data_dir = Path("data/raw")
+data_dir = Path("data")
 
 raw_data_dir = data_dir / "raw"
 processed_data_dir = data_dir / "processed"
