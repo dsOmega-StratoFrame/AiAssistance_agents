@@ -20,7 +20,6 @@ pandas = "*"
 langchain = "*"
 langchain-ollama = "*"
 pyzotero = ">=1.10.0,<2"
-# numpy = "==1.26.4"
 
 [pypi-dependencies]
 # Currently this version (that is compatible with Python 3.14) is only
@@ -54,30 +53,39 @@ isort = "==5.13.2"
 tasks = { pre-commit-check = "pre-commit run --all-files" }
 pypi-dependencies = { AiAssistance_agents = { path = "./", editable = true }, pre-commit = "==3.7.0" }
 
-# [feature.quarto.tasks]
-# preview-docs = "quarto preview docs"
-# build-docs = "quarto render docs"
+[feature.quarto.tasks]
+preview-docs = "quarto preview docs"
+build-docs = "quarto render docs"
 
-# preview-reports = "quarto preview reports"
-# build-reports = "quarto render reports"
-# build-reports-html = "quarto render reports --to html"
-# build-reports-pdf = "quarto render reports --to pdf"
+preview-reports = "quarto preview reports"
+build-reports = "quarto render reports"
+build-reports-html = "quarto render reports --to html"
+build-reports-pdf = "quarto render reports --to pdf"
 
-# [feature.quarto.dependencies]
-# quarto = "1.4.550"
+[feature.quarto.dependencies]
+quarto = "1.4.550"
 
-# [feature.jupyter.pypi-dependencies]
-# notebook = "*"
-# nbclassic = "*"
-# jupyter-console = "*"
+[feature.jupyter.pypi-dependencies]
+notebook = "*"
+nbclassic = "*"
+jupyter-console = "*"
 
 # [feature.jupyter-neovim.pypi-dependencies]
 # jupynium = "*"
 
+[feature.ast.tasks]
+repomap = "python src/repomap/main.py"
+
+[feature.ast.dependencies]
+# INFO: Dependency of the current aider version in nixpkgs
+# See `python3Packages = ...`: https://github.com/NixOS/nixpkgs/blob/nixos-unstable/pkgs/by-name/ai/aider-chat/package.nix
+python = "==3.12"
+
 [environments]
 default = []
 dev = ["test", "lint", "pre-commit"]
+repomap = { features = ["ast", "test"], no-default-feature = true }
 # dev-ju = ["test", "lint", "jupyter", "pre-commit"]
 # dev-ju-nvim = ["test", "lint", "jupyter", "jupyter-neovim", "pre-commit"]
-# quarto = ["quarto", "jupyter"]
-# dev-quarto = ["test", "lint", "quarto", "jupyter", "pre-commit"]
+quarto = ["quarto", "jupyter"]
+dev-quarto = ["test", "lint", "quarto", "jupyter", "pre-commit"]

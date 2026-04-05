@@ -119,6 +119,10 @@ ENV/
 env.bak/
 venv.bak/
 .pixi
+.direnv
+
+# Ai
+.aider*
 
 # Spyder project settings
 .spyderproject
