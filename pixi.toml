@@ -74,7 +74,7 @@ jupyter-console = "*"
 # jupynium = "*"
 
 [feature.ast.tasks]
-repomap = "python src/repomap/main.py"
+repomap = "nix develop -c python src/repomap/main.py"
 
 [feature.ast.dependencies]
 # INFO: Dependency of the current aider version in nixpkgs
