@@ -1,11 +1,16 @@
+import sys
+import httpx
 from pyzotero import Zotero
+from dsomega_logging.main import get_logger
 
 IS_DEBUG = False
+
+log = get_logger("zotero")
 
 type TCollectionKey = str
 
 LIBRARY_ID = "0"
-
+IS_LOCAL = True
 
 def get_library_name(library_id):
     if library_id == "0":
@@ -16,7 +21,20 @@ def get_library_name(library_id):
 
 # Require Zotero 7+ with local API access enabled:
 # Zotero > Settings > Advanced > "Allow other applications on this computer to communicate with Zotero".
-zot = Zotero(library_id=LIBRARY_ID, library_type="user", local=True)
+zot = Zotero(library_id=LIBRARY_ID, library_type="user", local=IS_LOCAL)
+
+
+try:
+    # [ {key, data, ...} ]
+    collections = zot.collections(limit=2000)
+except httpx.ConnectError as e:
+    log.debug(e)
+    msg = f"Make sure Zotero is available."
+    if IS_LOCAL:
+        msg += "\nCheck that Zotero app is running locally."
+
+    log.error(msg)
+    sys.exit(1)
 
 # [ {key, data, ...} ]
 collections = zot.collections(limit=2000)
