@@ -8,6 +8,8 @@ from langchain_chroma import Chroma
 from langchain_core.documents import Document
 from langchain_ollama import OllamaEmbeddings
 
+from data_sources.pizza import PizzaDataSource
+
 embeddings = OllamaEmbeddings(
     model="qwen3-embedding:4b"
 )
@@ -50,37 +52,12 @@ taskwarrior_db_path = kbn_chroma_db_dir / "taskwarrior"
 #     
 #      db.persist()
 
-def read_pizza_df(location: Path) -> pd.DataFrame:
-    return pd.read_csv(location)
+pizza_data_source = PizzaDataSource(
+    data_path=pizza_raw_data_path,
+    db_path=pizza_db_path
+)
 
-def init_pizza_vector_store(df: pd.DataFrame, db_path: Path) -> Chroma:
-    add_documents = not os.path.exists(db_path)
-
-    if add_documents:
-        documents = []
-        ids = []
-        
-        for i, row in df.iterrows():
-            document = Document(
-                page_content=row["Title"] + " " + row["Review"],
-                metadata={"rating": row["Rating"], "date": row["Date"]},
-                id=str(i)
-            )
-            ids.append(str(i))
-            documents.append(document)
-
-        # print(documents)
-            
-    vector_store = Chroma(
-        collection_name="restaurant_reviews",
-        persist_directory=db_path,
-        embedding_function=embeddings
-    )
-
-    if add_documents:
-        vector_store.add_documents(documents=documents, ids=ids)
-        
-    return vector_store
+retriever = pizza_data_source.get_retriever(embeddings=embeddings)
 
 def read_taskwarrior_df(location: Path) -> pd.DataFrame:
     return pd.read_json(location)
@@ -131,7 +108,6 @@ def init_taskwarrior_vector_store(df: pd.DataFrame, db_path: Path) -> Chroma:
             ids.append(id)
             documents.append(document)
 
-            
     vector_store = Chroma(
         collection_name="taskwarrior",
         persist_directory=db_path,
@@ -143,6 +119,6 @@ def init_taskwarrior_vector_store(df: pd.DataFrame, db_path: Path) -> Chroma:
         
     return vector_store
 
-retriever = init_taskwarrior_vector_store(df=read_taskwarrior_df(taskwarrior_raw_data_path), db_path=taskwarrior_db_path).as_retriever(
-    search_kwargs={"k": 10}
-)
+# retriever = init_taskwarrior_vector_store(df=read_taskwarrior_df(taskwarrior_raw_data_path), db_path=taskwarrior_db_path).as_retriever(
+#     search_kwargs={"k": 10}
+# )

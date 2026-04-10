@@ -54,6 +54,7 @@ while True:
         print("Available programs:")
         print("t - taskwarrior")
         print("z - zotero")
+        print("p - pizza")
 
     elif user_input == "z" or user_input == "zotero":
         paths_structure = construct_paths_structure()
@@ -69,6 +70,11 @@ while True:
             return retriever.invoke(question)
 
         prompt = select_template(TASKWARRIOR_TEMPLATE)
+    elif user_input == "p" or user_input == "pizza":
+        def get_context(question: str) -> str:
+            return retriever.invoke(question)
+
+        prompt = select_template(PIZZA_TEMPLATE)
 
     if not get_context:
         continue
