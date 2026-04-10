@@ -2,6 +2,7 @@ import sys
 import httpx
 from pyzotero import Zotero
 from dsomega_logging.main import get_logger
+from dsomega_zotero.main import ZoteroItemDict
 
 IS_DEBUG = False
 
@@ -24,6 +25,30 @@ def get_library_name(library_id):
 zot = Zotero(library_id=LIBRARY_ID, library_type="user", local=IS_LOCAL)
 
 
+items = []
+
+try:
+    # [ {key, data, ...} ]
+    items = zot.items()
+except httpx.ConnectError as e:
+    log.debug(e)
+    msg = f"Make sure Zotero is available."
+    if IS_LOCAL:
+        msg += "\nCheck that Zotero app is running locally."
+
+    log.error(msg)
+    sys.exit(1)
+
+
+def format_item(item: ZoteroItemDict):
+    t = item.get("data", {})
+
+    return f"zotero://select/library/items/@{t.get("citationKey")}"
+
+print(format_item(items[0]))
+
+collections = []
+
 try:
     # [ {key, data, ...} ]
     collections = zot.collections(limit=2000)
@@ -36,8 +61,6 @@ except httpx.ConnectError as e:
     log.error(msg)
     sys.exit(1)
 
-# [ {key, data, ...} ]
-collections = zot.collections(limit=2000)
 # { key: data }
 collections_map = {}
 
@@ -152,14 +175,14 @@ if __name__ == "__main__":
         print(f"Item: {c['data'].get('title')}")
 
     print("--- Collections ---")
-    for c in collections:
-        print(c["key"], c["data"]["name"], c["data"]["parentCollection"])
+    # for c in collections:
+    #     print(c["key"], c["data"]["name"], c["data"]["parentCollection"])
 
-    print("Number of collections: ", len(collections))
+    # print("Number of collections: ", len(collections))
 
-    paths_structure = construct_paths_structure()
+    # paths_structure = construct_paths_structure()
 
-    formatted_paths_structure = format_path_structure(paths_structure)
+    # formatted_paths_structure = format_path_structure(paths_structure)
 
-    print("------ Sorted paths -----")
-    print(formatted_paths_structure)
+    # print("------ Sorted paths -----")
+    # print(formatted_paths_structure)
