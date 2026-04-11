@@ -4,21 +4,11 @@ from langchain_ollama.llms import OllamaLLM
 # from kbn.zotero import construct_paths_structure, format_path_structure
 from nodes.base import ChatNode
 from nodes.pizza import PizzaChatNode, pizza_vector_store_manager
+from nodes.taskwarrior import TaskwarriorChatNode, taskwarrior_vector_store_manager
 
 model = OllamaLLM(model="qwen3.5:9b")
 
 embedding_function = OllamaEmbeddings(model="qwen3-embedding:4b")
-
-TASKWARRIOR_TEMPLATE = """
-You are an expert in time management and know very well how to prioritize tasks
-to achieve best results longterm in IT and related fields.
-
-When you reference a task, use it's id in full form.
-
-Here are some relevant tasks: {context}
-
-Here is the question to answer: {question}
-"""
 
 ZOTERO_TEMPLATE = """
 You are an expert in library and references management and know very well
@@ -57,11 +47,12 @@ while True:
 
     #     prompt = select_template(ZOTERO_TEMPLATE)
     elif user_input == "t" or user_input == "task" or user_input == "taskwarrior":
-
-        def get_context(question: str) -> str:
-            return retriever.invoke(question)
-
-        prompt = select_template(TASKWARRIOR_TEMPLATE)
+        taskwarrior_chat_node = TaskwarriorChatNode(
+            vector_store_manager=taskwarrior_vector_store_manager,
+            embedding_function=embedding_function,
+        )
+        node = taskwarrior_chat_node
+        prompt = node.get_prompt()
     elif user_input == "p" or user_input == "pizza":
         pizza_chat_node = PizzaChatNode(
             vector_store_manager=pizza_vector_store_manager,

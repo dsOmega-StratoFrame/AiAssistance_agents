@@ -1,7 +1,5 @@
 from typing import override
 
-from langchain_core.embeddings.embeddings import Embeddings
-
 from config.paths import pizza_db_path
 from data_sources.pizza import pizza_data_source
 from nodes.base import VectorRetrieverChatNode
