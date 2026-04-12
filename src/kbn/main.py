@@ -47,19 +47,15 @@ while True:
 
     #     prompt = select_template(ZOTERO_TEMPLATE)
     elif user_input == "t" or user_input == "task" or user_input == "taskwarrior":
-        taskwarrior_chat_node = TaskwarriorChatNode(
+        node = TaskwarriorChatNode(
             vector_store_manager=taskwarrior_vector_store_manager,
             embedding_function=embedding_function,
         )
-        node = taskwarrior_chat_node
-        prompt = node.get_prompt()
     elif user_input == "p" or user_input == "pizza":
-        pizza_chat_node = PizzaChatNode(
+        node = PizzaChatNode(
             vector_store_manager=pizza_vector_store_manager,
             embedding_function=embedding_function,
         )
-        node = pizza_chat_node
-        prompt = node.get_prompt()
 
     if not node:
         continue
@@ -67,6 +63,7 @@ while True:
     while True:
         print("\n\n-------------------------------")
         question = input("Ask your question (q to quit to previous stage): ")
+        prompt = node.get_prompt()
         chain = prompt | model
 
         if question == "q":
