@@ -4,6 +4,7 @@ from langchain_core.embeddings import Embeddings
 from langchain_core.vectorstores import VectorStoreRetriever
 
 from data_sources.base import DataSource
+from dsomega_logging.console import console
 from dsomega_logging.main import get_logger
 
 log = get_logger("vector")
@@ -35,7 +36,9 @@ class VectorStoreManager:
 
         if not self.embedding_function:
             log.info("You may have used `vector_store` before running get_retriever")
-            raise ValueError("self.embedding_function must be provided to use vector store")
+            raise ValueError(
+                "self.embedding_function must be provided to use vector store"
+            )
 
         from langchain_chroma import Chroma
 
@@ -62,28 +65,33 @@ class VectorStoreManager:
         add_documents=True,
     ) -> VectorStoreRetriever:
         # TODO:
-        # if not self.db_path.exists():
-
         self.embedding_function = embedding_function
         data = self.data_source.load_data()
 
         if add_documents:
-            # Check if documents already exist in the vector store
-            if self._vector_store:
-                # Get existing document count
-                existing_count = len(self._vector_store.get())
-                total_count = len(data)
-                
-                # Only add documents if they're new or if we're doing initial setup
-                if existing_count == 0 or not self._initialized:
+            log.info("Adding documents...")
+            with console.status("Adding documents"):
+                # Check if documents already exist in the vector store
+                if self.vector_store:
+                    # Get existing document count
+                    collection_metadatas = self.vector_store.get(include=['metadatas'])
+                    existing_count = len(collection_metadatas.get('ids', []))
+                    total_count = len(data)
+                    log.info(f"{existing_count=}, {total_count=}")
+
+                    # Only add documents if they're new and if we're doing initial setup.
+                    if total_count - existing_count > 0 and not self._initialized:
+                        documents, ids = self.data_source.add_documents(data)
+                        self.vector_store.add_documents(documents=documents, ids=ids)
+                        self._initialized = True
+                    else:
+                        log.info(
+                            f"Vector store already has {existing_count} documents, skipping add_documents"
+                        )
+                else:
                     documents, ids = self.data_source.add_documents(data)
                     self._vector_store.add_documents(documents=documents, ids=ids)
-                    self._initialized = True
-                else:
-                    log.info(f"Vector store already has {existing_count} documents, skipping add_documents")
-            else:
-                documents, ids = self.data_source.add_documents(data)
-                self._vector_store.add_documents(documents=documents, ids=ids)
-                self._initialized = True
+
+        self._initialized = True
 
         return self.vector_store.as_retriever(search_kwargs=search_kwargs or {"k": 10})
