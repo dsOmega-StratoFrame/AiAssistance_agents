@@ -16,3 +16,4 @@ kbn_chroma_db_dir = kbn_processed_data_dir / "chrome_langchain_db"
 
 pizza_db_path = chroma_db_dir / "pizzas"
 taskwarrior_db_path = kbn_chroma_db_dir / "taskwarrior"
+zotero_db_path = kbn_chroma_db_dir / "zotero"

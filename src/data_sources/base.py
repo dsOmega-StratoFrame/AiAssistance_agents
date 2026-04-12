@@ -8,9 +8,6 @@ from tqdm import tqdm
 
 
 class DataSource(ABC):
-    def __init__(self, data_path: Path):
-        self.data_path = data_path
-
     @abstractmethod
     def load_data(self) -> Any:  # pyright: ignore[reportExplicitAny, reportAny]
         """Load data from the source. Returns data in a format suitable for processing."""
@@ -23,13 +20,18 @@ class DataSource(ABC):
         """Convert a single item of data to a Document."""
         pass
 
+    @override
+    def get_item_id(self, item: Any) -> str | None:
+        return item.id
+
     def add_documents(self, data):
         documents = []
         ids = []
 
-        for i, item in tqdm(enumerate(data)):
+        for i, item in tqdm(enumerate(data), total=len(data)):
             document = self.item_to_document(item)
-            ids.append(document.id or str(i))
+            id = self.get_item_id(item) or str(i)
+            ids.append(id)
             documents.append(document)
 
         return documents, ids
@@ -37,6 +39,9 @@ class DataSource(ABC):
 
 class DataFrameSource(DataSource, metaclass=ABCMeta):
     """DataSource implementation that works with pandas DataFrames."""
+
+    def __init__(self, data_path: Path):
+        self.data_path = data_path
 
     @abstractmethod
     @override
@@ -50,6 +55,7 @@ class DataFrameSource(DataSource, metaclass=ABCMeta):
         """Convert a pandas Series row to a Document."""
         pass
 
+    @override
     def get_item_id(self, item: pd.Series) -> str | None:
         return item.id
 
@@ -61,7 +67,7 @@ class DataFrameSource(DataSource, metaclass=ABCMeta):
 
         # TODO: Do we have better way to add?
         # https://stackoverflow.com/questions/16476924/how-can-i-iterate-over-rows-in-a-pandas-dataframe
-        for i, item in tqdm(data.iterrows()):
+        for i, item in tqdm(data.iterrows(), total=data.rows):
             document = self.item_to_document(item)
             id = self.get_item_id(item) or str(i)
             ids.append(id)
