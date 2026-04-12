@@ -2,9 +2,13 @@ from langchain_ollama.embeddings import OllamaEmbeddings
 from langchain_ollama.llms import OllamaLLM
 
 # from kbn.zotero import construct_paths_structure, format_path_structure
+from dsomega_logging.console import console
+from dsomega_logging.main import get_logger
 from nodes.base import ChatNode
 from nodes.pizza import PizzaChatNode, pizza_vector_store_manager
 from nodes.taskwarrior import TaskwarriorChatNode, taskwarrior_vector_store_manager
+from rich.markdown import Markdown
+from rich.prompt import Prompt
 
 model = OllamaLLM(model="qwen3.5:9b")
 
@@ -19,30 +23,31 @@ Here are some relevant collections: {context}
 Here is the question to answer: {question}
 """
 
+log = get_logger("chat")
 
-def initialize_vector_stores():
-    """Initialize vector stores with data on first run only."""
-    # Initialize pizza vector store
-    pizza_vector_store_manager.get_retriever(
-        embedding_function=embedding_function,
-        add_documents=True,
-    )
-    
-    # Initialize taskwarrior vector store
-    taskwarrior_vector_store_manager.get_retriever(
-        embedding_function=embedding_function,
-        add_documents=True,
-    )
+# def initialize_vector_stores():
+#     """Initialize vector stores with data on first run only."""
+#     # Initialize pizza vector store
+#     pizza_vector_store_manager.get_retriever(
+#         embedding_function=embedding_function,
+#         add_documents=True,
+#     )
+#     
+#     # Initialize taskwarrior vector store
+#     taskwarrior_vector_store_manager.get_retriever(
+#         embedding_function=embedding_function,
+#         add_documents=True,
+#     )
 
 
-# Initialize vector stores once at startup
-initialize_vector_stores()
+# # Initialize vector stores once at startup
+# initialize_vector_stores()
 
 
 while True:
     print("\n\n-------------------------------")
     # TODO: In the future add here chat assistant too.
-    user_input = input("Choose a program (h for help, q to quit): ")
+    user_input = Prompt.ask("Choose a program (h for help, q to quit)")
     print("\n")
     # get_context = None
     node: ChatNode | None = None
@@ -79,19 +84,24 @@ while True:
     if not node:
         continue
 
+    prompt = node.get_prompt()
+
     while True:
         print("\n\n-------------------------------")
-        question = input("Ask your question (q to quit to previous stage): ")
-        prompt = node.get_prompt()
+        question = Prompt.ask("Ask your question (q to quit to previous stage)")
         chain = prompt | model
 
         if question == "q":
             break
 
-        result = chain.invoke(
-            {
-                "context": node.get_context(question),
-                "question": question,
-            }
-        )
-        print(result)
+        status_msg = f"Processing question with {model.get_name()}/{model.model}..."
+        log.info(status_msg)
+        with console.status(status_msg):
+            result = chain.invoke(
+                {
+                    "context": node.get_context(question),
+                    "question": question,
+                }
+            )
+            log.info(result)
+            console.print(Markdown(result))
