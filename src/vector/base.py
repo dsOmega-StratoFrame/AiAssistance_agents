@@ -26,6 +26,7 @@ class VectorStoreManager:
         self.db_path = db_path
         self.collection_name = collection_name
         self.embedding_function = None
+        self._initialized = False
 
     @property
     def vector_store(self):
@@ -67,9 +68,22 @@ class VectorStoreManager:
         data = self.data_source.load_data()
 
         if add_documents:
-            # REFACTOR: May have trouble with batch add.
-            documents, ids = self.data_source.add_documents(data)
-
-            self.vector_store.add_documents(documents=documents, ids=ids)
+            # Check if documents already exist in the vector store
+            if self._vector_store:
+                # Get existing document count
+                existing_count = len(self._vector_store.get())
+                total_count = len(data)
+                
+                # Only add documents if they're new or if we're doing initial setup
+                if existing_count == 0 or not self._initialized:
+                    documents, ids = self.data_source.add_documents(data)
+                    self._vector_store.add_documents(documents=documents, ids=ids)
+                    self._initialized = True
+                else:
+                    log.info(f"Vector store already has {existing_count} documents, skipping add_documents")
+            else:
+                documents, ids = self.data_source.add_documents(data)
+                self._vector_store.add_documents(documents=documents, ids=ids)
+                self._initialized = True
 
         return self.vector_store.as_retriever(search_kwargs=search_kwargs or {"k": 10})

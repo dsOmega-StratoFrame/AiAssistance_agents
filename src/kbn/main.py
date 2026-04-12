@@ -20,6 +20,25 @@ Here is the question to answer: {question}
 """
 
 
+def initialize_vector_stores():
+    """Initialize vector stores with data on first run only."""
+    # Initialize pizza vector store
+    pizza_vector_store_manager.get_retriever(
+        embedding_function=embedding_function,
+        add_documents=True,
+    )
+    
+    # Initialize taskwarrior vector store
+    taskwarrior_vector_store_manager.get_retriever(
+        embedding_function=embedding_function,
+        add_documents=True,
+    )
+
+
+# Initialize vector stores once at startup
+initialize_vector_stores()
+
+
 while True:
     print("\n\n-------------------------------")
     # TODO: In the future add here chat assistant too.
