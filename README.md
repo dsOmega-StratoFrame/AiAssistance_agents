@@ -4,6 +4,7 @@
   * [KBN](#kbn)
   * [[Methodology chosen][2]](#methodology-chosen2)
   * [Contributing](#contributing)
+    * [Adding New Node](#adding-new-node)
   * [References](#references)
 
 <!-- mtoc-end -->
@@ -39,6 +40,15 @@ experiment and model branches made while working on RAN-73 will be:
 See guidelines in [Contributing](./CONTRIBUTING.md). This projects also
 has Docker support, see ["Running in Docker"
 section in Contributing](./CONTRIBUTING.md#running-in-docker).
+
+### Adding New Node
+1. Add choice to the chat
+2. Create new chat-node in [`nodes`](./src/nodes/README.md). Here you define a template and other things
+   related to human-llm interaction. One of the important parts of the
+   communication is a context. Initialize `VectorStoreManager` here similar to
+   already established [config values](./src/config/).
+3. One of the values used by `VectorStoreManager` is a data source. Use one of
+   the existing or create a new one in [`data_sources`](./src/data_sources/README.md)
 
 ## References
 
