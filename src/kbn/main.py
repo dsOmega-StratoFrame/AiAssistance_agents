@@ -1,14 +1,20 @@
+import warnings
+
+# langchain-core uses Pydantic V1 compatibility mode which warns on Python 3.14+
+# TODO: Remove when langchain upgrades to Pydantic V2 compatibility
+warnings.filterwarnings("ignore", "Core Pydantic V1 functionality")
+
 from argparse import RawDescriptionHelpFormatter
 
+# from kbn.zotero import construct_paths_structure, format_path_structure
+from dsomega_logging.console import console
+from dsomega_logging.main import get_logger
 from langchain_ollama.embeddings import OllamaEmbeddings
 from langchain_ollama.llms import OllamaLLM
 from rich.markdown import Markdown
 from rich.prompt import Prompt
 from tap import Tap
 
-# from kbn.zotero import construct_paths_structure, format_path_structure
-from dsomega_logging.console import console
-from dsomega_logging.main import get_logger
 from nodes.base import ChatNode
 from nodes.pizza import PizzaChatNode, pizza_vector_store_manager
 from nodes.taskwarrior import (TaskwarriorChatNode,
@@ -77,60 +83,74 @@ interaction_count = {
 }
 
 
-while True:
-    interaction_count["agent"] += 1
+def run_non_interactive(node: ChatNode, prompt: str):
+    chain = prompt_template | model
+    status_msg = f"Processing question with {model.get_name()}/{model.model}..."
+    log.info(status_msg)
+    with console.status(status_msg):
+        result = chain.invoke(
+            {
+                "context": node.get_context(prompt),
+                "question": prompt,
+            }
+        )
+        log.info(result)
+        console.print(Markdown(result))
 
-    if interaction_count["agent"] == 0 and args.agent:
-        node = select_node(args.agent)
-    else:
-        print("\n\n-------------------------------")
-        # TODO: In the future add here chat assistant too.
-        user_input = Prompt.ask("Choose a program (h for help, q to quit)")
-        print("\n")
-        # get_context = None
-        node: ChatNode | None = None
 
-        if user_input == "q":
-            break
-
-        elif user_input in ["help", "h"]:
-            print("Available programs:")
-            print("t - taskwarrior")
-            print("z - zotero")
-            print("p - pizza")
-
-        node = select_node(user_input)
-
-    if not node:
-        continue
-
-    prompt_template = node.get_prompt()
-
+if args.prompt:
+    node = select_node(args.agent)
+    if node:
+        prompt_template = node.get_prompt()
+        run_non_interactive(node, args.prompt)
+else:
     while True:
-        interaction_count["prompt"] += 1
+        interaction_count["agent"] += 1
 
-        print("\n\n-------------------------------")
-
-        prompt = ""
-
-        if interaction_count["prompt"] == 0 and args.prompt:
-            prompt = args.prompt
+        if interaction_count["agent"] == 0 and args.agent:
+            node = select_node(args.agent)
         else:
+            print("\n\n-------------------------------")
+            user_input = Prompt.ask("Choose a program (h for help, q to quit)")
+            print("\n")
+            node: ChatNode | None = None
+
+            if user_input == "q":
+                break
+
+            elif user_input in ["help", "h"]:
+                print("Available programs:")
+                print("t - taskwarrior")
+                print("z - zotero")
+                print("p - pizza")
+
+            node = select_node(user_input)
+
+        if not node:
+            continue
+
+        prompt_template = node.get_prompt()
+
+        while True:
+            interaction_count["prompt"] += 1
+
+            print("\n\n-------------------------------")
+
             prompt = Prompt.ask("Ask your question (q to quit to previous stage)")
 
             if prompt == "q":
                 break
 
-        chain = prompt_template | model
+            chain = prompt_template | model
 
-        status_msg = f"Processing question with {model.get_name()}/{model.model}..."
-        log.info(status_msg)
-        with console.status(status_msg):
-            result = chain.invoke(
-                {
-                    "context": node.get_context(prompt),
-                    "question": prompt,
-                }
-            )
-            log.info(result)
-            console.print(Markdown(result))
+            status_msg = f"Processing question with {model.get_name()}/{model.model}..."
+            log.info(status_msg)
+            with console.status(status_msg):
+                result = chain.invoke(
+                    {
+                        "context": node.get_context(prompt),
+                        "question": prompt,
+                    }
+                )
+                log.info(result)
+                console.print(Markdown(result))

@@ -1,3 +1,5 @@
+import sys
+
 from abc import ABC, ABCMeta, abstractmethod
 from typing import override
 
@@ -20,8 +22,9 @@ class ChatNode(ABC):
         pass
 
     def get_prompt(self) -> ChatPromptTemplate:
-        print("Following template:")
-        print(self.template)
+        if sys.stdin.isatty():
+            print("Following template:")
+            print(self.template)
 
         return ChatPromptTemplate.from_template(self.template)
 
