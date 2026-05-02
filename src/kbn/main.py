@@ -12,13 +12,14 @@ from dsomega_logging.main import get_logger
 from langchain_ollama.embeddings import OllamaEmbeddings
 from langchain_ollama.llms import OllamaLLM
 from rich.markdown import Markdown
+import json
+
 from rich.prompt import Prompt
 from tap import Tap
 
 from nodes.base import ChatNode
 from nodes.pizza import PizzaChatNode, pizza_vector_store_manager
-from nodes.taskwarrior import (TaskwarriorChatNode,
-                               taskwarrior_vector_store_manager)
+from nodes.taskwarrior import TaskwarriorChatNode, taskwarrior_vector_store_manager
 from nodes.zotero import ZoteroChatNode, zotero_vector_store_manager
 
 model = OllamaLLM(model="qwen3.5:9b")
@@ -29,8 +30,17 @@ log = get_logger("chat")
 
 
 class ArgumentParser(Tap):
-    agent: str = "taskwarrior"  # Select which agent to run.
-    prompt: str | None = None  # Question to ask.
+    agent: str = "taskwarrior"
+    prompt: str | None = None
+    output_format: str = "synthesized"
+
+    def configure(self) -> None:
+        self.add_argument(
+            "--output-format",
+            dest="output_format",
+            default="synthesized",
+            help="Output format: 'synthesized' or 'raw'",
+        )
 
 
 def parse_args():
@@ -84,6 +94,15 @@ interaction_count = {
 
 
 def run_non_interactive(node: ChatNode, prompt: str):
+    if args.output_format == "raw":
+        raw_context = node.get_context(prompt)
+        docs_json = [
+            {"id": doc.id, "metadata": doc.metadata, "content": doc.page_content}
+            for doc in raw_context  # type: ignore
+        ]
+        print(json.dumps(docs_json, indent=2))
+        return
+
     chain = prompt_template | model
     status_msg = f"Processing question with {model.get_name()}/{model.model}..."
     log.info(status_msg)
@@ -140,6 +159,15 @@ else:
 
             if prompt == "q":
                 break
+
+            if args.output_format == "raw":
+                raw_context = node.get_context(prompt)
+                docs_json = [
+                    {"id": doc.id, "metadata": doc.metadata, "content": doc.page_content}
+                    for doc in raw_context  # type: ignore
+                ]
+                print(json.dumps(docs_json, indent=2))
+                continue
 
             chain = prompt_template | model
 
